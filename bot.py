@@ -1,60 +1,48 @@
 import discord
 import requests
 from bs4 import BeautifulSoup
-from googleapiclient.discovery import build
-from datetime import datetime
 
 # Configuration
-DISCORD_TOKEN = "your_discord_token"
-CHANNEL_ID = "your_discord_channel_id"
-WEB_PAGE_URL = "URL_of_the_web_page_to_monitor"
-YOUTUBE_CHANNEL_ID = "YouTube_channel_id_to_monitor"
-API_KEY = "your_youtube_API_key"
+TOKEN = DISCORD_TOKEN
+CHANNEL_ID = 1243967560647577710
+URLS_TO_MONITOR = 'https://dafuqboom.shop'
 
-# Initialize Discord client
-client = discord.Client()
+# Create an instance of a Client
+intents = discord.Intents.default()
+intents.message_content = True
+client = discord.Client(intents=intents)
 
-# Function to check updates on the web page
-def check_web_page_update():
-    response = requests.get(WEB_PAGE_URL)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    # Logic to check for updates on the web page
-    # Compare page elements with previous data, determine if an update has occurred
-    # If an update is detected, return True, otherwise return False
+# Function to get the content of a webpage
+def get_page_content(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    return soup.get_text()  # Or any specific part of the page you want to monitor
 
-# Function to check updates on the YouTube channel
-def check_youtube_channel_update():
-    youtube = build('youtube', 'v3', developerKey=API_KEY)
-    request = youtube.channels().list(part='contentDetails', id=YOUTUBE_CHANNEL_ID)
-    response = request.execute()
-    uploads_playlist_id = response['items'][0]['contentDetails']['relatedPlaylists']['uploads']
-    request = youtube.playlistItems().list(part='snippet', playlistId=uploads_playlist_id, maxResults=1)
-    response = request.execute()
-    latest_video_id = response['items'][0]['snippet']['resourceId']['videoId']
-    # Logic to check for updates on the YouTube channel
-    # Compare the ID of the latest video with previous data, determine if an update has occurred
-    # If an update is detected, return True, otherwise return False
-
-# Function to send a notification to the Discord channel
-async def send_notification(update_source):
-    channel = client.get_channel(CHANNEL_ID)
-    await channel.send(f"An update has been detected on {update_source} at {datetime.now()}")
-
-# Event triggered when the bot is ready
 @client.event
 async def on_ready():
-    print(f"Connected as {client.user}")
+    print(f'Logged in as {client.user}')
 
-# Main loop
-async def main():
-    while True:
-        if check_web_page_update():
-            await send_notification("the web page")
-        if check_youtube_channel_update():
-            await send_notification("the YouTube channel")
-        # Wait for 1 hour before checking again
-        await asyncio.sleep(3600)
+    for index, url in enumerate(URLS_TO_MONITOR):
+        # Get the previous content from a local file
+        try:
+            with open(f'previous_content_{index}.txt', 'r') as file:
+                previous_content = file.read()
+        except FileNotFoundError:
+            previous_content = ''
 
-# Run the bot
-client.loop.create_task(main())
-client.run(DISCORD_TOKEN)
+        # Get the current content of the page
+        current_content = get_page_content(url)
+
+        # Compare the content and send a message if there is an update
+        if current_content != previous_content:
+            channel = client.get_channel(CHANNEL_ID)
+            await channel.send(f'The page at {url} has been updated.')
+
+            # Update the previous content file
+            with open(f'previous_content_{index}.txt', 'w') as file:
+                file.write(current_content)
+
+    # Close the bot after the task is done
+    await client.close()
+
+client.run(TOKEN)
