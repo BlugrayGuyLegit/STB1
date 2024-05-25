@@ -1,8 +1,11 @@
 import discord
 import os
 
-# Créez une instance du client Discord
-client = discord.Client()
+intents = discord.Intents.default()
+intents.messages = True
+intents.reactions = True
+
+client = discord.Client(intents=intents)
 
 # Événement déclenché lorsque le bot est prêt
 @client.event
