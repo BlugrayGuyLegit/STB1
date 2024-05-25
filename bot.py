@@ -1,67 +1,51 @@
 import discord
-import openai
 import os
 
-# Configure intents
+# Get Discord token and channel ID from environment variables
+discord_token = os.getenv(DISCORD_TOKEN)
+log_channel_id = int(os.getenv('1194337788741550230'))
+
+# Create an instance of the Discord client
 intents = discord.Intents.default()
-intents.message_content = True
-
-# Create an instance of the Discord client with intents
+intents.guilds = True
+intents.members = True
+intents.messages = True
 client = discord.Client(intents=intents)
-
-# Get API keys from environment variables
-discord_token = os.getenv('DISCORD_TOKEN')
-openai_api_key = os.getenv('OPENAI_API_KEY')
-
-# Configure the OpenAI API
-openai.api_key = openai_api_key
 
 # Event triggered when the bot is ready
 @client.event
 async def on_ready():
     print(f'Logged in as {client.user}')
 
-# Event triggered when a message is received
+# Event triggered when a server (guild) is updated
 @client.event
-async def on_message(message):
-    print(f'Received message: {message.content}')  # Debugging
-    if message.author == client.user:
-        return
+async def on_guild_update(before, after):
+    log_message = f"Server '{before.name}' ({before.id}) has been updated."
+    await send_log_message(log_message)
 
-    if message.content.startswith('!ask'):
-        prompt = message.content[len('!ask '):]
-        print(f'Prompt: {prompt}')  # Debugging
+# Event triggered when a member (user) is updated
+@client.event
+async def on_member_update(before, after):
+    log_message = f"User '{before.name}' ({before.id}) has been updated."
+    await send_log_message(log_message)
 
-        # Try to get a response from OpenAI
-        try:
-            print('Calling OpenAI API...')
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            print(f'OpenAI API response: {response}')  # Debugging API response
+# Event triggered when a message is edited
+@client.event
+async def on_message_edit(before, after):
+    log_message = f"Message edited in #{before.channel.name} by {before.author.name} ({before.author.id})."
+    await send_log_message(log_message)
 
-            # Extract and print the reply
-            reply = response['choices'][0]['message']['content'].strip()
-            print(f'Response to send: {reply}')  # Debugging
+# Event triggered when a message is deleted
+@client.event
+async def on_message_delete(message):
+    log_message = f"Message deleted in #{message.channel.name} by {message.author.name} ({message.author.id})."
+    await send_log_message(log_message)
 
-            # Send the response back to the Discord channel
-            await message.channel.send(reply)
-
-        except openai.error.OpenAIError as e:
-            print(f'OpenAI API Error: {e}')  # Detailed debugging for API errors
-            await message.channel.send(f"OpenAI API error: {e}")
-
-        except KeyError as e:
-            print(f'KeyError: {e}')  # Catching KeyErrors in the response
-            await message.channel.send("An error occurred while processing the API response.")
-
-        except Exception as e:
-            print(f'General Error: {e}')  # Detailed debugging for general errors
-            await message.channel.send(f"An unexpected error occurred: {e}")
+# Function to send log messages to the specified channel
+async def send_log_message(message):
+    channel = client.get_channel(log_channel_id)
+    if channel:
+        await channel.send(message)
 
 # Run the bot with the retrieved Discord token
 client.run(discord_token)
