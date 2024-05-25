@@ -1,9 +1,11 @@
 import discord
 import os
 
-# Get Discord token and channel ID from environment variables
-discord_token = os.getenv(DISCORD_TOKEN)
-log_channel_id = int(os.getenv('1194337788741550230'))
+# Get Discord token from environment variables
+discord_token = os.getenv('DISCORD_TOKEN')
+
+# Channel ID for logging
+log_channel_id = 1194337788741550230
 
 # Create an instance of the Discord client
 intents = discord.Intents.default()
