@@ -31,6 +31,8 @@ async def on_message(message):
     if message.content.startswith('!ask'):
         prompt = message.content[len('!ask '):]
         print(f'Prompt: {prompt}')  # Debugging
+
+        # Try to get a response from OpenAI
         try:
             response = openai.Completion.create(
                 engine="text-davinci-003",
@@ -39,9 +41,15 @@ async def on_message(message):
             )
             reply = response.choices[0].text.strip()
             print(f'Response: {reply}')  # Debugging
+
+            # Send the response back to the Discord channel
             await message.channel.send(reply)
+        except openai.error.OpenAIError as e:
+            print(f'OpenAI API Error: {e}')  # Debugging API errors
+            await message.channel.send("There was an error with the OpenAI API.")
         except Exception as e:
-            print(f'Error: {e}')  # Debugging errors
+            print(f'General Error: {e}')  # Debugging other errors
+            await message.channel.send("An error occurred while processing your request.")
 
 # Run the bot with the retrieved Discord token
 client.run(discord_token)
