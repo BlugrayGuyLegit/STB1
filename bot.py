@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 
 # Configuration
-TOKEN = DISCORD_TOKEN
+TOKEN = MTI0Mzk2NTU5MzA3NDI3MDI4OQ.GfmNKg.le3AFTO_w1wwuFGDbA454WLe4fcU65mZ8dUsF0
 CHANNEL_ID = 1243967560647577710
 URLS_TO_MONITOR = 'https://dafuqboom.shop'
 
