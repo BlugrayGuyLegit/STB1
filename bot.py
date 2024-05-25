@@ -34,21 +34,20 @@ async def on_message(message):
 
         # Try to get a response from OpenAI
         try:
-            response = openai.Completion.create(
-                engine="text-davinci-003",
-                prompt=prompt,
-                max_tokens=150
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": prompt}
+                ]
             )
-            reply = response.choices[0].text.strip()
+            reply = response['choices'][0]['message']['content'].strip()
             print(f'Response: {reply}')  # Debugging
 
             # Send the response back to the Discord channel
             await message.channel.send(reply)
-        except openai.error.OpenAIError as e:
-            print(f'OpenAI API Error: {e}')  # Debugging API errors
-            await message.channel.send("There was an error with the OpenAI API.")
         except Exception as e:
-            print(f'General Error: {e}')  # Debugging other errors
+            print(f'Error: {e}')  # Debugging errors
             await message.channel.send("An error occurred while processing your request.")
 
 # Run the bot with the retrieved Discord token
