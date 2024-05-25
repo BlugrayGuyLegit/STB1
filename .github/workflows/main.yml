@@ -1,24 +1,31 @@
-name: Run Bot
+name: Discord Bot Deployment
 
 on:
   push:
     branches:
       - main
-  schedule:
-    - cron: '0 * * * *' # exécution chaque heure
 
 jobs:
-  run-bot:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
       with:
-        python-version: '3.x'
+        node-version: '14'
+
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Run bot script
-      run: python bot.py
+      run: npm install
+
+    - name: Build
+      run: npm run build
+
+    - name: Deploy to Discord
+      uses: discordjs/discord.js-action@v3
+      with:
+        token: ${{ secrets.DISCORD_TOKEN }}
+        script: 'dist/index.js'
