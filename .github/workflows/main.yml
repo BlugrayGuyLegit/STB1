@@ -1,0 +1,32 @@
+name: Bot Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Run bot
+      run: python bot.py
+      env:
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        CHANNEL_ID: UCsSsgPaZ2GSmO6il8Cb5iGA
+        WEB_PAGE_URL: https://dafuqboom.shop
+        YOUTUBE_CHANNEL_ID: your_youtube_channel_id_here
+        API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
