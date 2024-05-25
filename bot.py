@@ -27,13 +27,14 @@ async def on_message(message):
     print(f'Received message: {message.content}')  # Debugging
     if message.author == client.user:
         return
-    
+
     if message.content.startswith('!ask'):
         prompt = message.content[len('!ask '):]
         print(f'Prompt: {prompt}')  # Debugging
 
         # Try to get a response from OpenAI
         try:
+            print('Calling OpenAI API...')
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
@@ -41,14 +42,23 @@ async def on_message(message):
                     {"role": "user", "content": prompt}
                 ]
             )
+            print(f'OpenAI API response: {response}')  # Debugging API response
+
+            # Extract and print the reply
             reply = response['choices'][0]['message']['content'].strip()
-            print(f'Response: {reply}')  # Debugging
+            print(f'Response to send: {reply}')  # Debugging
 
             # Send the response back to the Discord channel
             await message.channel.send(reply)
+
         except openai.error.OpenAIError as e:
             print(f'OpenAI API Error: {e}')  # Detailed debugging for API errors
             await message.channel.send(f"OpenAI API error: {e}")
+
+        except KeyError as e:
+            print(f'KeyError: {e}')  # Catching KeyErrors in the response
+            await message.channel.send("An error occurred while processing the API response.")
+
         except Exception as e:
             print(f'General Error: {e}')  # Detailed debugging for general errors
             await message.channel.send(f"An unexpected error occurred: {e}")
