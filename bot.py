@@ -46,9 +46,12 @@ async def on_message(message):
 
             # Send the response back to the Discord channel
             await message.channel.send(reply)
+        except openai.error.OpenAIError as e:
+            print(f'OpenAI API Error: {e}')  # Detailed debugging for API errors
+            await message.channel.send(f"OpenAI API error: {e}")
         except Exception as e:
-            print(f'Error: {e}')  # Debugging errors
-            await message.channel.send("An error occurred while processing your request.")
+            print(f'General Error: {e}')  # Detailed debugging for general errors
+            await message.channel.send(f"An unexpected error occurred: {e}")
 
 # Run the bot with the retrieved Discord token
 client.run(discord_token)
